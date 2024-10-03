@@ -15,7 +15,7 @@ library(bruceR)
 library(dplyr)
 library(labelled)
 
-lab5 <- read.csv("C:/Users/Colin/Documents/GitHub/Website/Lab5/lab5data.csv")
+lab5 <- read.csv("/Users/jostarenky/Documents/GitHub/Lab5/lab5data.csv")
 
 ```
 
@@ -60,7 +60,7 @@ lab5$Group <- ifelse(lab5$Gender == "Women" & lab5$Greek == "Yes", "Greek Women"
 #3rd group is Non-Greek Women,
 #4th group is Non-Greek Men. 
 
-#So if you want to compare Greek Women vs. Greek Men you would write (1, 1, 0, 0)
+#So if you want to compare Greek Women vs. Greek Men you would write (-1, 1, 0, 0)
 
 
 ```
@@ -74,7 +74,7 @@ emm<- emmeans(model, "Group")
 
 emm
 
-contrast(emm, list("Greek Women vs. Greek Men" = c(1, 1, 0, 0)))
+contrast(emm, list("Greek Women vs. Greek Men" = c(-1, 1, 0, 0)))
 
 contrast(emm, list("Greek Main Effect" = c(1, 1, -1, -1)))
 
@@ -127,19 +127,78 @@ ggplot(plot2, aes(x = Group, y = Drinks, fill = Group)) +
 ```
 
 # Q1: You hypothesized that Greek Women have a lower GPA than non-Greek women. Conduct the correct analysis below and explain whether or not your hypothesis is supported. 
-```{r}
 
+#The hypothesis is not supported because there was no significant difference between the GPA of Greek women and non-Greek women
+```{r}
+#Here we have 4 groups. 
+
+#Because of the order you coded above, it would assume that 
+#1st group is Greek Women, 
+#2nd group is Greek men, 
+#3rd group is Non-Greek Women,
+#4th group is Non-Greek Men. 
+
+#So if you want to compare Greek Women vs. Greek Men you would write (-1, 1, 0, 0)
+
+model <- lm(GPA ~ Group, data = lab5)
+
+emm<- emmeans(model, "Group")
+
+emm
+
+contrast(emm, list("Greek Women vs. Non-Greek Women" = c(-1, 0, 1, 0)))
 
 
 ```
 
-# Q2: You hypothesized that on average women have a higher GPA than men. Conduct the correct analysis below and explain whether or not your hypothesis is supported. 
-```{r}
+# Q2: You hypothesized that on average women have a higher GPA than men. Conduct the correct analysis below and explain whether or not your hypothesis is supported.
 
+#The hypothesis is not supported because there was no main effect of gender, aka there was no difference, on average, between men and women. There was also no simple effects showing differences between Greek women and Greek men, or non-Greek women and non-Greek men.
+```{r}
+#Here we have 4 groups. 
+
+#Because of the order you coded above, it would assume that 
+#1st group is Greek Women, 
+#2nd group is Greek men, 
+#3rd group is Non-Greek Women,
+#4th group is Non-Greek Men. 
+
+#So if you want to compare Greek Women vs. Greek Men you would write (-1, 1, 0, 0)
+
+model <- lm(GPA ~ Group, data = lab5)
+
+emm<- emmeans(model, "Group")
+
+emm
+
+contrast(emm, list("Women vs Men" = c(-1, 1, -1, 1)))
+
+mod<-MANOVA(lab5, dv = "GPA", between = c("Gender", "Greek")) 
+
+EMMEANS(mod, effect = "Gender", by = "Greek", p.adjust = "none")
+
+EMMEANS(mod, effect = "Greek", by = "Gender", p.adjust = "none")
 
 ```
 
 # Q3: Create a bar graph to compare GPA by gender and greek (either graph works)
 ```{r}
+lab5_clean <- lab5 %>%
+  drop_na(GPA)
+
+plot<-summarySE(lab5_clean, measurevar="GPA", groupvars=c("Gender", "Greek"))
+
+plot
+
+plot2<-summarySE(lab5_clean, measurevar="GPA", groupvars=c("Group"))
+
+plot2
+
+ggplot(plot, aes(x = Greek, y = GPA, fill = Greek)) +
+  geom_col() + facet_wrap(~ Gender) + theme_bruce()
+
+ggplot(plot2, aes(x = Group, y = GPA, fill = Group)) +
+  geom_col()  + theme_bruce() + theme(axis.text.x = element_text(angle = -10))
+
 
 ```
